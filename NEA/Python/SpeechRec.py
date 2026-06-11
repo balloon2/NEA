@@ -17,11 +17,13 @@ with mic as source:
     print("listening")
     speach("listening")
     try:
+        #Try to start listening and processing
         audio=rec.listen(source,timeout=5,phrase_time_limit=10)
         print("Processing")
         InitTranscript = rec.recognize_google(audio)
-        print(f"Success! InitTranscript = '{InitTranscript}'")
+        print(f"Success InitialTranscript: '{InitTranscript}'")
         speach(f"You said: {InitTranscript}")
+        #if not possible throw an error
     except SR.WaitTimeoutError:
         print("Error: No speech detected before timeout.")
         speach("I did not hear anything.")
