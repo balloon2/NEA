@@ -65,3 +65,54 @@ TrainingData =[
     ("prepare presentation slides for group project", 0),
 ]
 
+#classifies the voice transcripts into MATHS or NOTES
+class IntentClassifier:
+    #ngram range(1.1) meaning one and wo words at a time meaning the program looks for everything
+    def __init__(self, ngramrange: tuple=(1,2)):
+        self.vectorizer=TfidfVectorizer(ngram_range=ngramrange,lowercase=True)
+        self.model=LinearSVC(C=1,random_state=42)
+        self.fitted=False
+        
+
+
+    #supposed to return intentClassifier
+    def fit(self, X: list[str], Y:list[int]) -> "intentClassifier":
+        Xvec=self.vectorizer.fit_transform(X)
+        self.model.fit(Xvec,Y)
+        self.is_fitted = True
+        return self
+    
+
+    def predict(self, cleantxt: str)->"IntentClassifier":
+        
+        if not self.is_fitted:
+            print("Model is not fitted. Train it or load a saved model first.")
+            exit(1)
+        
+        Xvec=self.vectorizer.transform([cleantxt])
+        prediction=self.model.predict(Xvec)[0]
+        return "MATHS" if prediction == 1 else "NOTE"
+
+    def save(self, filepath):
+        if not self.is_fitted:
+            print("fit the model first")
+            exit(1)
+        dire=os.path.dirname(filepath)
+        if dire:
+            os.makedirs(dire, exist_ok=True)
+
+        model_state = {"vectorizer": self.vectorizer, "model": self.model}
+        f=open(filepath,"wb")
+        pickle.dump(model_state,f,protocol=pickle.HIGHEST_PROTOCOL)
+    
+    #Deserializes vectorizer and model from a single pickle file using pickle
+    def loadModel(self, filepath):
+        if not os.path.exists(filepath):
+            print("model not found at filepath specified")
+            exit(1)
+        f=open(filepath,"rb")
+        model_state=pickle.load(f)
+        self.vectorizer=model_state["vectorizer"]
+        self.model = model_state["model"]
+        self.is_fitted = True
+        return self
